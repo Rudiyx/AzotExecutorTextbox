@@ -3,19 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dark Animated Textbox</title>
+<title>Mini Animated Textbox</title>
 <style>
 :root {
   --bg: #0a0a0a;
   --surface: #111;
   --text: #e0e0e0;
   --muted: #666;
-  --accent: #333; /* subtle gray accent */
-  --radius: 8px;
-  --transition: 200ms cubic-bezier(.25,.8,.25,1);
+  --accent: #333;
+  --radius: 4px;
+  --transition: 150ms cubic-bezier(.25,.8,.25,1);
 }
 * { box-sizing: border-box; }
 body {
+  margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: "Segoe UI", Roboto, sans-serif;
@@ -24,7 +25,7 @@ body {
   align-items: center;
   height: 100vh;
 }
-animated-textbox { display: block; width: 320px; }
+animated-textbox { display: block; width: 306px; height: 39px; }
 </style>
 
 <script>
@@ -35,14 +36,17 @@ class AnimatedTextBox extends HTMLElement {
     const root = this.attachShadow({mode:'open'});
     root.innerHTML = `
       <style>
-        :host { display:block; color:var(--text); }
+        :host { display:block; color:var(--text); height:100%; }
         .wrap {
           background: var(--surface);
           border: 1px solid #222;
           border-radius: var(--radius);
-          padding: 12px 14px;
+          padding: 4px 6px;
           position: relative;
           transition: border-color var(--transition);
+          height: 100%;
+          display: flex;
+          align-items: center;
         }
         input {
           background: transparent;
@@ -50,30 +54,30 @@ class AnimatedTextBox extends HTMLElement {
           outline: none;
           width: 100%;
           color: var(--text);
-          font-size: 14px;
-          padding: 18px 0 4px 0;
+          font-size: 10px;
+          padding: 0;
         }
         label {
           position: absolute;
-          left: 14px;
-          top: 14px;
-          font-size: 14px;
+          left: 6px;
+          top: 4px;
+          font-size: 10px;
           color: var(--muted);
           pointer-events: none;
           transform-origin: left top;
           transition: transform var(--transition), font-size var(--transition), color var(--transition), top var(--transition);
         }
         label.floating {
-          top: 6px;
-          font-size: 11px;
+          top: -4px;
+          font-size: 8px;
           color: #888;
-          transform: translateY(-6px);
+          transform: translateY(-4px);
         }
         .line {
           position: absolute;
           bottom: 0;
           left: 0;
-          height: 2px;
+          height: 1px;
           width: 100%;
           background: var(--accent);
           transform: scaleX(0);
