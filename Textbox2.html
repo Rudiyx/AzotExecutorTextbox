@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dark Animated Textbox</title>
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --text: #e0e0e0;
+  --muted: #666;
+  --accent: #333; /* subtle gray accent */
+  --radius: 8px;
+  --transition: 200ms cubic-bezier(.25,.8,.25,1);
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+animated-textbox { display: block; width: 320px; }
+</style>
+
+<script>
+class AnimatedTextBox extends HTMLElement {
+  static get observedAttributes() { return ['placeholder', 'value', 'password']; }
+  constructor() {
+    super();
+    const root = this.attachShadow({mode:'open'});
+    root.innerHTML = `
+      <style>
+        :host { display:block; color:var(--text); }
+        .wrap {
+          background: var(--surface);
+          border: 1px solid #222;
+          border-radius: var(--radius);
+          padding: 12px 14px;
+          position: relative;
+          transition: border-color var(--transition);
+        }
+        input {
+          background: transparent;
+          border: none;
+          outline: none;
+          width: 100%;
+          color: var(--text);
+          font-size: 14px;
+          padding: 18px 0 4px 0;
+        }
+        label {
+          position: absolute;
+          left: 14px;
+          top: 14px;
+          font-size: 14px;
+          color: var(--muted);
+          pointer-events: none;
+          transform-origin: left top;
+          transition: transform var(--transition), font-size var(--transition), color var(--transition), top var(--transition);
+        }
+        label.floating {
+          top: 6px;
+          font-size: 11px;
+          color: #888;
+          transform: translateY(-6px);
+        }
+        .line {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          height: 2px;
+          width: 100%;
+          background: var(--accent);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform var(--transition);
+        }
+        .wrap.focus .line { transform: scaleX(1); }
+      </style>
+      <div class="wrap">
+        <label></label>
+        <input />
+        <div class="line"></div>
+      </div>
+    `;
+    this._root = root;
+    this._wrap = root.querySelector('.wrap');
+    this._label = root.querySelector('label');
+    this._input = root.querySelector('input');
+    this._line = root.querySelector('.line');
+
+    this._onInput = this._onInput.bind(this);
+    this._onFocus = this._onFocus.bind(this);
+    this._onBlur = this._onBlur.bind(this);
+  }
+
+  connectedCallback() {
+    this._apply();
+    this._input.addEventListener('input', this._onInput);
+    this._input.addEventListener('focus', this._onFocus);
+    this._input.addEventListener('blur', this._onBlur);
+  }
+  disconnectedCallback() {
+    this._input.removeEventListener('input', this._onInput);
+    this._input.removeEventListener('focus', this._onFocus);
+    this._input.removeEventListener('blur', this._onBlur);
+  }
+
+  attributeChangedCallback() { this._apply(); }
+
+  _apply() {
+    const ph = this.getAttribute('placeholder') || '';
+    this._label.textContent = ph;
+    const val = this.getAttribute('value') || '';
+    this._input.value = val;
+    this._input.type = this.hasAttribute('password') ? 'password' : 'text';
+    this._updateLabel();
+  }
+
+  _onInput(e) {
+    const v = this._input.value;
+    this.setAttribute('value', v);
+    this._updateLabel();
+    if (window.chrome?.webview?.postMessage)
+      window.chrome.webview.postMessage(JSON.stringify({ type: 'valueChanged', value: v }));
+  }
+  _onFocus() {
+    this._wrap.classList.add('focus');
+    this._label.classList.add('floating');
+  }
+  _onBlur() {
+    this._wrap.classList.remove('focus');
+    this._updateLabel();
+  }
+  _updateLabel() {
+    if (this._input.value.length > 0)
+      this._label.classList.add('floating');
+    else
+      this._label.classList.remove('floating');
+  }
+
+  get value() { return this._input.value; }
+  set value(v) { this.setAttribute('value', v); }
+}
+customElements.define('animated-textbox', AnimatedTextBox);
+</script>
+</head>
+<body>
+  <animated-textbox placeholder="Email"></animated-textbox>
+</body>
+</html>
